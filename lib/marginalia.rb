@@ -13,7 +13,10 @@ module Marginalia
           alias_method :execute, :execute_with_marginalia
         end
 
-        if instrumented_class.private_method_defined?(:execute_and_clear)
+        if instrumented_class.method_defined?(:internal_execute)
+          alias_method :internal_execute_without_marginalia, :internal_execute
+          alias_method :internal_execute, :internal_execute_with_marginalia
+        elsif instrumented_class.private_method_defined?(:execute_and_clear)
           alias_method :execute_and_clear_without_marginalia, :execute_and_clear
           alias_method :execute_and_clear, :execute_and_clear_with_marginalia
         else
@@ -65,6 +68,10 @@ module Marginalia
       end
 
       sql
+    end
+
+    def internal_execute_with_marginalia(sql, *args, **options)
+      internal_execute_without_marginalia(annotate_sql(sql), *args, **options)
     end
 
     def execute_with_marginalia(sql, *args)
